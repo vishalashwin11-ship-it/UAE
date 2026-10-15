@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to identify the designated admin
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'vishalashwin11@gmail.com' ||
+        (request.auth.token.keys().hasAny(['email']) && request.auth.token.email == 'vishalashwin11@gmail.com')
+      );
+    }
+
+    // Registrations collection (from Book Session, Sign-in Tab, Free Session, Contact)
+    match /registrations/{registrationId} {
+      // Allow creation by any student from any entry point
+      allow create: if true;
+      // Allow admin to read and manage all registrations
+      allow read: if isAdmin() || (
+        request.auth != null && (
+          resource == null || 
+          resource.data.email == request.auth.token.email || 
+          resource.data.userId == request.auth.uid
+        )
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    // Bookings collection (1-on-1 and Free Counselling Sessions)
+    match /bookings/{bookingId} {
+      allow create: if true;
+      allow read: if isAdmin() || (
+        request.auth != null && (
+          resource == null || 
+          resource.data.email == request.auth.token.email || 
+          resource.data.userId == request.auth.uid
+        )
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    // User profile documents
+    match /users/{userId} {
+      allow create: if true;
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+      allow write: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+      allow list: if isAdmin();
+    }
+
+    // Student university applications
+    match /applications/{applicationId} {
+      allow create: if request.auth != null;
+      allow read, write: if isAdmin() || (
+        request.auth != null && (
+          resource == null || 
+          resource.data.userId == request.auth.uid || 
+          request.resource.data.userId == request.auth.uid
+        )
+      );
+    }
+
+    // Course recommendation reports
+    match /courseReports/{reportId} {
+      allow create: if request.auth != null;
+      allow read, write: if isAdmin() || (
+        request.auth != null && (
+          resource == null || 
+          resource.data.userId == request.auth.uid || 
+          request.resource.data.userId == request.auth.uid
+        )
+      );
+    }
+
+    // General fallback for admin or authenticated users
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

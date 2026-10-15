@@ -1,0 +1,127 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Student user profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "Student email address" },
+        "displayName": { "type": "string", "description": "Full student name" },
+        "targetDegree": { "type": "string", "description": "Degree level" },
+        "targetDestination": { "type": "string", "description": "Primary study destination" },
+        "targetIntake": { "type": "string", "description": "Target intake" },
+        "gpa": { "type": "string", "description": "Undergraduate GPA" },
+        "testScores": { "type": "string", "description": "Test scores" },
+        "createdAt": { "type": "string", "description": "Timestamp of creation" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Registration": {
+      "title": "Registration",
+      "description": "Student registration lead from book session, sign in/up tab, or free session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Registration identifier" },
+        "fullName": { "type": "string", "description": "Student full name" },
+        "email": { "type": "string", "description": "Student contact email" },
+        "phone": { "type": "string", "description": "Phone number with country code" },
+        "source": { "type": "string", "description": "Origin: account_signup, account_signin, counselling_booking, free_session_booking, contact_inquiry" },
+        "destination": { "type": "string", "description": "Target country" },
+        "intake": { "type": "string", "description": "Target intake" },
+        "counselor": { "type": "string", "description": "Assigned or selected counselor" },
+        "sessionDate": { "type": "string", "description": "Date of scheduled consultation" },
+        "timeSlot": { "type": "string", "description": "Time slot of session" },
+        "notes": { "type": "string", "description": "Additional academic details" },
+        "status": { "type": "string", "description": "Status: New, Confirmed, Contacted, In Progress, Completed" },
+        "createdAt": { "type": "string", "description": "ISO timestamp of registration" }
+      },
+      "required": ["id", "fullName", "email", "source"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "1-on-1 expert counselling and free profile evaluation booking record",
+      "type": "object",
+      "properties": {
+        "bookingId": { "type": "string", "description": "Booking reference code" },
+        "fullName": { "type": "string", "description": "Student name" },
+        "email": { "type": "string", "description": "Student email" },
+        "phone": { "type": "string", "description": "Contact phone number" },
+        "destination": { "type": "string", "description": "Target study country" },
+        "intake": { "type": "string", "description": "Target intake" },
+        "counselor": { "type": "string", "description": "Selected senior counselor" },
+        "date": { "type": "string", "description": "Session date" },
+        "timeSlot": { "type": "string", "description": "Session time slot" },
+        "currentEducation": { "type": "string", "description": "Current qualification and GPA" },
+        "notes": { "type": "string", "description": "Academic notes" },
+        "meetUrl": { "type": "string", "description": "Google Meet video link" },
+        "status": { "type": "string", "description": "Booking status" },
+        "isFreeSession": { "type": "boolean", "description": "Whether this was a free session" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["bookingId", "fullName", "email", "phone"]
+    },
+    "Application": {
+      "title": "Application",
+      "description": "Student university application progress record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique application ID" },
+        "userId": { "type": "string", "description": "Owner student user ID" },
+        "universityName": { "type": "string", "description": "Name of target institution" },
+        "programName": { "type": "string", "description": "Degree program name" },
+        "destination": { "type": "string", "description": "Country of institution" },
+        "intake": { "type": "string", "description": "Intake session" },
+        "status": { "type": "string", "description": "Current status" },
+        "currentStage": { "type": "string", "description": "Step number (1 to 6)" },
+        "stageTitle": { "type": "string", "description": "Title of current stage" },
+        "assignedCounselor": { "type": "string", "description": "Counselor name" },
+        "nextAction": { "type": "string", "description": "Next required step" },
+        "actionDeadline": { "type": "string", "description": "Deadline for student" },
+        "updatedAt": { "type": "string", "description": "Last update timestamp" }
+      },
+      "required": ["id", "userId", "universityName", "programName", "status"]
+    },
+    "CourseRecommendation": {
+      "title": "CourseRecommendation",
+      "description": "Personalized course recommendation report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Report ID" },
+        "userId": { "type": "string", "description": "Student UID" },
+        "tier": { "type": "string", "description": "Match tier: Dream, Target, or Safe" },
+        "universityName": { "type": "string", "description": "University name" },
+        "programName": { "type": "string", "description": "Course title" },
+        "country": { "type": "string", "description": "Destination country" },
+        "fitScore": { "type": "string", "description": "Fit percentage" },
+        "avgTuition": { "type": "string", "description": "Annual tuition fee" },
+        "admitProbability": { "type": "string", "description": "Probability rating" },
+        "scholarshipChance": { "type": "string", "description": "Scholarship estimation" },
+        "notes": { "type": "string", "description": "Admissions officer notes" }
+      },
+      "required": ["id", "userId", "universityName", "programName"]
+    }
+  },
+  "firestore": {
+    "/registrations/{registrationId}": {
+      "schema": "Registration",
+      "description": "All student registrations across sign-in, book session, and free session"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Counselling and free session bookings"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document"
+    },
+    "/applications/{applicationId}": {
+      "schema": "Application",
+      "description": "Student university applications"
+    },
+    "/courseReports/{reportId}": {
+      "schema": "CourseRecommendation",
+      "description": "Personalized course recommendation items"
+    }
+  }
+}
