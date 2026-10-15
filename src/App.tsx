@@ -17,7 +17,7 @@ import { AuthModal } from './components/AuthModal';
 import { StudentPortal } from './components/StudentPortal';
 import { AdminPortal } from './components/AdminPortal';
 import { FreeSessionModal } from './components/FreeSessionModal';
-import { Sparkles, Calendar, MessageSquare, ArrowRight, GraduationCap, FileCheck2, ShieldCheck } from 'lucide-react';
+import { Sparkles, Calendar, MessageSquare, ArrowRight, GraduationCap, FileCheck2, ShieldCheck, Phone } from 'lucide-react';
 
 function MainApp() {
   const { user, isAdmin, loginAsAdmin } = useAuth();
@@ -59,66 +59,35 @@ function MainApp() {
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       {/* Top Advisory Banner */}
-      <div className="bg-slate-900 text-slate-200 text-[11px] sm:text-xs py-2 px-4 text-center font-medium border-b border-slate-800 flex flex-wrap items-center justify-center gap-3">
+      <div className="bg-slate-900 text-slate-200 text-[11px] sm:text-xs py-2 px-4 text-center font-medium border-b border-slate-800 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
           <span>
-            <strong>Fall 2026 Admissions:</strong> Priority scholarship rounds are open!
+            <strong>Fall 2026 Admissions:</strong> Priority scholarship rounds are active!
           </span>
         </div>
         
-        <span className="hidden sm:inline text-slate-600">|</span>
+        <span className="hidden sm:inline text-slate-700">|</span>
+
+        {/* Regional Desk Asia Helpline */}
+        <a 
+          href="tel:+919354935332"
+          className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 transition-colors"
+          title="Direct Asia Regional Admissions Desk"
+        >
+          <Phone className="w-3 h-3 text-emerald-400" />
+          <span>Asia Regional Desk: 9354935332</span>
+        </a>
+
+        <span className="hidden sm:inline text-slate-700">|</span>
 
         {/* Quick Free Session CTA */}
         <button
           onClick={() => setIsFreeSessionOpen(true)}
-          className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 underline underline-offset-2"
+          className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 underline underline-offset-2 transition-colors"
         >
           <Sparkles className="w-3 h-3 text-amber-300" />
           <span>Book Free 1-on-1 Session</span>
-        </button>
-
-        <span className="hidden sm:inline text-slate-600">|</span>
-
-        {/* Student Portal / Sign In Link */}
-        {user ? (
-          <button
-            onClick={() => {
-              setActiveTab('portal');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="text-blue-300 hover:text-white font-bold flex items-center gap-1"
-          >
-            <GraduationCap className="w-3.5 h-3.5" />
-            <span>My Student Portal</span>
-          </button>
-        ) : (
-          <button
-            onClick={() => handleOpenAuth('signin')}
-            className="text-blue-300 hover:text-white font-bold flex items-center gap-1"
-          >
-            <GraduationCap className="w-3.5 h-3.5" />
-            <span>Student Sign In</span>
-          </button>
-        )}
-
-        <span className="hidden sm:inline text-slate-600">|</span>
-
-        {/* Admin Portal Link (Email hidden from header) */}
-        <button
-          onClick={() => {
-            if (isAdmin) {
-              setActiveTab('admin');
-            } else {
-              handleOpenAuth('admin');
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          className="text-amber-300 hover:text-amber-200 font-bold flex items-center gap-1 px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/30 transition-colors"
-          title="Admin Portal - Manage all registrations"
-        >
-          <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
-          <span>Admin Portal →</span>
         </button>
       </div>
 

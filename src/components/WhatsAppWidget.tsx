@@ -21,7 +21,7 @@ export const WhatsAppWidget: React.FC<WhatsAppWidgetProps> = ({
   onClose,
   onOpen,
 }) => {
-  const [selectedNumber, setSelectedNumber] = useState('+1 (212) 890-4420');
+  const [selectedNumber, setSelectedNumber] = useState('+91 93549 35332');
   const [userQuery, setUserQuery] = useState(
     'Hi Upbeat Team! I would like to check my profile and university options for Fall 2026 admissions.'
   );
@@ -37,7 +37,7 @@ export const WhatsAppWidget: React.FC<WhatsAppWidgetProps> = ({
     // Clean phone number for URL
     const cleanPhone = selectedNumber.replace(/\D/g, '');
     const encodedText = encodeURIComponent(userQuery);
-    const url = `https://wa.me/${cleanPhone || '12128904420'}?text=${encodedText}`;
+    const url = `https://wa.me/${cleanPhone || '919354935332'}?text=${encodedText}`;
     window.open(url, '_blank');
     onClose();
   };
@@ -120,10 +120,17 @@ export const WhatsAppWidget: React.FC<WhatsAppWidgetProps> = ({
                 onChange={(e) => setSelectedNumber(e.target.value)}
                 className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-white font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
+                <option value="+91 93549 35332">🇮🇳 Asia Regional Desk (+91 93549 35332)</option>
                 <option value="+1 (212) 890-4420">🇺🇸 Americas & Global (+1 212 890 4420)</option>
                 <option value="+44 20 7946 0812">🇬🇧 UK & Europe (+44 20 7946 0812)</option>
-                <option value="+91 98765 43210">🇮🇳 South Asia Hub (+91 98765 43210)</option>
               </select>
+              <div className="flex items-center justify-between mt-1 text-[10px] text-slate-500">
+                <span>Direct Asia Hotline:</span>
+                <a href="tel:+919354935332" className="text-emerald-700 font-bold hover:underline flex items-center gap-1">
+                  <Phone className="w-2.5 h-2.5" />
+                  +91 93549 35332
+                </a>
+              </div>
             </div>
 
             {/* Quick Starters */}

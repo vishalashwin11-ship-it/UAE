@@ -5,7 +5,8 @@ import {
   Linkedin, 
   Youtube, 
   Facebook, 
-  Sparkles
+  Sparkles,
+  Phone
 } from 'lucide-react';
 
 interface FooterProps {
@@ -226,6 +227,13 @@ export const Footer: React.FC<FooterProps> = ({
             >
               Chat on WhatsApp
             </button>
+            <div className="pt-1 text-[11px] text-slate-400 flex items-center justify-between border-t border-slate-900">
+              <span>Asia Desk:</span>
+              <a href="tel:+919354935332" className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1">
+                <Phone className="w-3 h-3" />
+                +91 93549 35332
+              </a>
+            </div>
           </div>
         </div>
 

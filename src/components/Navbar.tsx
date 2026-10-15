@@ -122,62 +122,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {item.label}
                 </button>
               ))}
-
-              {/* Student Sign In / Portal Tab */}
-              <button
-                onClick={() => {
-                  if (user) {
-                    handleNavClick('portal');
-                  } else {
-                    onOpenAuth('signin');
-                  }
-                }}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs xl:text-sm font-bold rounded-lg transition-colors ${
-                  activeTab === 'portal'
-                    ? 'text-indigo-700 bg-indigo-50 font-bold'
-                    : 'text-indigo-600 hover:bg-indigo-50/70'
-                }`}
-                title="Student Course Recommendations & Application Tracker"
-              >
-                <GraduationCap className="w-4 h-4 text-indigo-600" />
-                <span>{user ? 'Student Portal' : 'Student Sign In'}</span>
-              </button>
-
-              {/* Admin Portal Tab */}
-              <button
-                onClick={() => {
-                  if (isAdmin) {
-                    handleNavClick('admin');
-                  } else {
-                    onOpenAuth('admin');
-                  }
-                }}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs xl:text-sm font-bold rounded-lg transition-colors ${
-                  activeTab === 'admin'
-                    ? 'text-amber-800 bg-amber-100/90 font-bold'
-                    : 'text-amber-800 hover:text-amber-950 hover:bg-amber-50'
-                }`}
-                title="Admin Portal - Manage All Registrations"
-              >
-                <ShieldCheck className="w-4 h-4 text-amber-600" />
-                <span>{isAdmin ? 'Admin Portal' : 'Admin Sign In'}</span>
-              </button>
             </nav>
 
             {/* Right CTAs */}
             <div className="hidden md:flex items-center gap-2">
-              {/* Free Session Quick Trigger */}
-              {onOpenFreeSession && (
-                <button
-                  onClick={onOpenFreeSession}
-                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/90 rounded-lg transition-all"
-                  title="Book 100% Free 1-on-1 Profile Evaluation"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Free Session</span>
-                </button>
-              )}
-
               {/* WhatsApp Quick Connect */}
               <button
                 onClick={onOpenWhatsApp}
@@ -348,54 +296,39 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               ))}
 
-              <button
-                onClick={() => {
-                  if (user) {
+              {/* Show Portal links only if user is logged in */}
+              {user && (
+                <button
+                  onClick={() => {
                     handleNavClick('portal');
-                  } else {
                     setMobileMenuOpen(false);
-                    onOpenAuth('signin');
-                  }
-                }}
-                className={`text-left px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${
-                  activeTab === 'portal' ? 'bg-indigo-50 text-indigo-700' : 'text-indigo-600'
-                }`}
-              >
-                <GraduationCap className="w-4 h-4" />
-                <span>{user ? 'Student Portal (Course Report & Process)' : 'Student Sign In'}</span>
-              </button>
+                  }}
+                  className={`text-left px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${
+                    activeTab === 'portal' ? 'bg-indigo-50 text-indigo-700' : 'text-indigo-600'
+                  }`}
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  <span>Student Portal (Course Report & Process)</span>
+                </button>
+              )}
 
-              <button
-                onClick={() => {
-                  if (isAdmin) {
+              {user && isAdmin && (
+                <button
+                  onClick={() => {
                     handleNavClick('admin');
-                  } else {
                     setMobileMenuOpen(false);
-                    onOpenAuth('admin');
-                  }
-                }}
-                className={`text-left px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${
-                  activeTab === 'admin' ? 'bg-amber-100 text-amber-900' : 'text-amber-800 hover:bg-amber-50'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4 text-amber-600" />
-                <span>{isAdmin ? 'Admin Portal (Registrations)' : 'Admin Portal Sign In'}</span>
-              </button>
+                  }}
+                  className={`text-left px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${
+                    activeTab === 'admin' ? 'bg-amber-100 text-amber-900' : 'text-amber-800 hover:bg-amber-50'
+                  }`}
+                >
+                  <ShieldCheck className="w-4 h-4 text-amber-600" />
+                  <span>Admin Dashboard (Registrations)</span>
+                </button>
+              )}
             </div>
 
             <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2.5">
-              {onOpenFreeSession && (
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenFreeSession();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg shadow-2xs"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-600" />
-                  Book Free 1-on-1 Session (Complimentary)
-                </button>
-              )}
 
               <button
                 onClick={() => {

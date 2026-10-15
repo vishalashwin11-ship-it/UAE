@@ -447,7 +447,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = () => {
                     const waMessage = encodeURIComponent(
                       `Hello ${reg.fullName}, this is Vishal Ashwin from Upbeat Abroad Education regarding your registration for ${reg.destination} (${reg.intake}). How can we assist you with admissions and scholarships today?`
                     );
-                    const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${waMessage}` : `https://wa.me/919876543210?text=${waMessage}`;
+                    const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${waMessage}` : `https://wa.me/919354935332?text=${waMessage}`;
 
                     return (
                       <tr key={reg.id} className="hover:bg-slate-50/60 transition-colors">
