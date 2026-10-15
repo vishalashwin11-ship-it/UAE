@@ -43,7 +43,7 @@ export const BlogSection: React.FC = () => {
   };
 
   return (
-    <section id="blogs-section" className="py-16 lg:py-24 bg-slate-50 border-t border-slate-200">
+    <section id="blogs-section" aria-labelledby="blogs-heading" className="py-16 lg:py-24 bg-slate-50 border-t border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
@@ -51,7 +51,7 @@ export const BlogSection: React.FC = () => {
             <BookOpen className="w-3.5 h-3.5" />
             Admissions & Policy Knowledge Hub
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
+          <h2 id="blogs-heading" className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
             Guides, Visa Updates & Scholarship Strategies
           </h2>
           <p className="mt-3 text-base sm:text-lg text-slate-600">
@@ -100,7 +100,11 @@ export const BlogSection: React.FC = () => {
               <div className="relative h-48 w-full overflow-hidden">
                 <img
                   src={post.coverImage}
-                  alt={post.title}
+                  alt={`${post.title} - Upbeat Abroad Education Guide`}
+                  loading="lazy"
+                  decoding="async"
+                  width={600}
+                  height={350}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-md text-[11px] font-bold text-blue-700 shadow-2xs">
@@ -146,7 +150,11 @@ export const BlogSection: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <img
                       src={post.author.avatar}
-                      alt={post.author.name}
+                      alt={`${post.author.name}, ${post.author.role}`}
+                      loading="lazy"
+                      decoding="async"
+                      width={28}
+                      height={28}
                       className="w-7 h-7 rounded-full object-cover"
                     />
                     <div>
@@ -175,7 +183,11 @@ export const BlogSection: React.FC = () => {
               <div className="relative h-64 w-full">
                 <img
                   src={selectedPost.coverImage}
-                  alt={selectedPost.title}
+                  alt={`${selectedPost.title} - Guide Overview`}
+                  loading="lazy"
+                  decoding="async"
+                  width={800}
+                  height={450}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
@@ -253,7 +265,11 @@ export const BlogSection: React.FC = () => {
                 <div className="pt-4 border-t border-slate-200 flex items-center gap-3">
                   <img
                     src={selectedPost.author.avatar}
-                    alt={selectedPost.author.name}
+                    alt={`${selectedPost.author.name}, ${selectedPost.author.role}`}
+                    loading="lazy"
+                    decoding="async"
+                    width={48}
+                    height={48}
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div>

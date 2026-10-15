@@ -98,7 +98,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav aria-label="Main Navigation" className="hidden lg:flex items-center gap-1">
               <button
                 onClick={() => handleNavClick('home')}
                 className={`px-3 py-2 text-xs xl:text-sm font-semibold rounded-lg transition-colors ${
@@ -275,7 +275,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 shadow-xl animate-in fade-in slide-in-from-top duration-200">
-            <div className="flex flex-col space-y-1">
+            <nav aria-label="Mobile Navigation" className="flex flex-col space-y-1">
               <button
                 onClick={() => handleNavClick('home')}
                 className={`text-left px-3 py-2 rounded-lg text-sm font-semibold ${
@@ -326,7 +326,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Admin Dashboard (Registrations)</span>
                 </button>
               )}
-            </div>
+            </nav>
 
             <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2.5">
 

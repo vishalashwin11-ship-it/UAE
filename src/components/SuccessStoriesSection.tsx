@@ -26,7 +26,7 @@ export const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({ on
     : SUCCESS_STORIES.filter((s) => s.destination.toLowerCase().includes(countryFilter));
 
   return (
-    <section id="success-stories-section" className="py-16 lg:py-24 bg-white">
+    <section id="success-stories-section" aria-labelledby="success-heading" className="py-16 lg:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
@@ -34,7 +34,7 @@ export const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({ on
             <Award className="w-3.5 h-3.5" />
             Verified Student Outcomes
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
+          <h2 id="success-heading" className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
             Real Students. Top Admits. Life-Changing Careers.
           </h2>
           <p className="mt-3 text-base sm:text-lg text-slate-600">
@@ -71,7 +71,7 @@ export const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({ on
         {/* Stories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredStories.map((story) => (
-            <div
+            <article
               key={story.id}
               className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden hover:-translate-y-1 group"
             >
@@ -81,7 +81,11 @@ export const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({ on
                   <div className="flex items-center gap-3">
                     <img
                       src={story.avatar}
-                      alt={story.studentName}
+                      alt={`Admitted student ${story.studentName} - ${story.admittedUniversity}`}
+                      loading="lazy"
+                      decoding="async"
+                      width={52}
+                      height={52}
                       className="w-13 h-13 rounded-full object-cover border-2 border-emerald-500/30"
                     />
                     <div>
@@ -141,7 +145,7 @@ export const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({ on
                   <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
-            </div>
+            </article>
           ))}
         </div>
 
@@ -153,7 +157,11 @@ export const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({ on
                 <div className="flex items-center gap-3">
                   <img
                     src={selectedStory.avatar}
-                    alt={selectedStory.studentName}
+                    alt={`Admitted student ${selectedStory.studentName} - ${selectedStory.admittedUniversity}`}
+                    loading="lazy"
+                    decoding="async"
+                    width={56}
+                    height={56}
                     className="w-14 h-14 rounded-full object-cover border-2 border-emerald-500"
                   />
                   <div>

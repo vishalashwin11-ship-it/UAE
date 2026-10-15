@@ -42,7 +42,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-blue-50/30 to-white pt-10 pb-16 lg:pt-16 lg:pb-24 border-b border-slate-200/60">
+    <section aria-labelledby="hero-main-heading" className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-blue-50/30 to-white pt-10 pb-16 lg:pt-16 lg:pb-24 border-b border-slate-200/60">
       {/* Background ambient decorative shapes */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 pointer-events-none opacity-40 blur-3xl overflow-hidden -z-10">
         <div className="absolute -top-24 left-10 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl"></div>
@@ -63,7 +63,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
 
           {/* Main Title */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] font-display">
+          <h1 id="hero-main-heading" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] font-display">
             Navigate Your Journey to{' '}
             <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
               Top Global Universities

@@ -23,7 +23,7 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenWhatsApp,
 }) => {
   return (
-    <footer className="bg-slate-950 text-slate-400 pt-16 pb-12 border-t border-slate-900">
+    <footer role="contentinfo" className="bg-slate-950 text-slate-400 pt-16 pb-12 border-t border-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
           {/* Col 1: Brand & Overview (2 cols) */}
@@ -95,8 +95,8 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
           </div>
 
-          {/* Col 2: Destinations (with identical clean indentation for Study in Germany and all countries) */}
-          <div>
+          {/* Col 2: Destinations */}
+          <nav aria-label="Study Destinations Links">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
               Top Destinations
             </h4>
@@ -165,10 +165,10 @@ export const Footer: React.FC<FooterProps> = ({
                 </button>
               </li>
             </ul>
-          </div>
+          </nav>
 
           {/* Col 3: Services & Tools */}
-          <div>
+          <nav aria-label="Services & Tools Links">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
               Services & Tools
             </h4>
@@ -205,7 +205,7 @@ export const Footer: React.FC<FooterProps> = ({
                 </button>
               </li>
             </ul>
-          </div>
+          </nav>
 
           {/* Col 4: Quick Action Box */}
           <div className="space-y-3">
@@ -227,20 +227,20 @@ export const Footer: React.FC<FooterProps> = ({
             >
               Chat on WhatsApp
             </button>
-            <div className="pt-1 text-[11px] text-slate-400 flex items-center justify-between border-t border-slate-900">
+            <address className="not-italic pt-1 text-[11px] text-slate-400 flex items-center justify-between border-t border-slate-900">
               <span>Asia Desk:</span>
               <a href="tel:+919354935332" className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1">
                 <Phone className="w-3 h-3" />
                 +91 93549 35332
               </a>
-            </div>
+            </address>
           </div>
         </div>
 
         {/* Bottom bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
           <p>© 2026 Upbeat Abroad Education. All rights reserved.</p>
-          <div className="flex items-center gap-6">
+          <nav aria-label="Legal and Privacy Links" className="flex items-center gap-6">
             <button onClick={() => onNavigate('contact')} className="hover:text-white transition-colors">
               Privacy Policy
             </button>
@@ -250,7 +250,7 @@ export const Footer: React.FC<FooterProps> = ({
             <button onClick={() => onNavigate('contact')} className="hover:text-white transition-colors">
               Contact Desk
             </button>
-          </div>
+          </nav>
         </div>
       </div>
     </footer>

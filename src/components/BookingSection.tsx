@@ -179,7 +179,7 @@ END:VCALENDAR`;
   };
 
   return (
-    <section id="booking-section" className="py-16 lg:py-24 bg-gradient-to-b from-white to-slate-50 border-t border-slate-200">
+    <section id="booking-section" aria-labelledby="booking-heading" className="py-16 lg:py-24 bg-gradient-to-b from-white to-slate-50 border-t border-slate-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-10">
@@ -187,7 +187,7 @@ END:VCALENDAR`;
             <Calendar className="w-3.5 h-3.5" />
             Zero-Cost 1-on-1 Consultation
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
+          <h2 id="booking-heading" className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
             Book Your Strategic Counselling Session
           </h2>
           <p className="mt-2 text-sm sm:text-base text-slate-600">
@@ -411,7 +411,11 @@ END:VCALENDAR`;
                         <div className="flex items-center gap-3">
                           <img
                             src={c.avatar}
-                            alt={c.name}
+                            alt={`Academic Counselor ${c.name} - Upbeat Abroad Education`}
+                            loading="lazy"
+                            decoding="async"
+                            width={48}
+                            height={48}
                             className="w-12 h-12 rounded-full object-cover border border-slate-200"
                           />
                           <div>

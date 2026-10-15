@@ -52,7 +52,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onBookService 
   ];
 
   return (
-    <section id="services-section" className="py-16 lg:py-24 bg-white">
+    <section id="services-section" aria-labelledby="services-heading" className="py-16 lg:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
@@ -60,7 +60,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onBookService 
             <Compass className="w-3.5 h-3.5" />
             End-to-End Advisory Ecosystem
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
+          <h2 id="services-heading" className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
             A Structured, High-Admit Guidance Suite
           </h2>
           <p className="mt-3 text-base sm:text-lg text-slate-600">
@@ -71,7 +71,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onBookService 
         {/* 7 Core Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {SERVICES.map((service, idx) => (
-            <div
+            <article
               key={idx}
               className="bg-slate-50/70 hover:bg-white rounded-2xl border border-slate-200/90 p-6 shadow-2xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between hover:border-blue-300 group"
             >
@@ -120,7 +120,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onBookService 
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
-            </div>
+            </article>
           ))}
         </div>
 

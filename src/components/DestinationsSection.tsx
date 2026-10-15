@@ -34,7 +34,7 @@ export const DestinationsSection: React.FC<DestinationsSectionProps> = ({
     : DESTINATIONS.filter(d => d.id === activeFilter);
 
   return (
-    <section id="destinations-section" className="py-16 lg:py-24 bg-white">
+    <section id="destinations-section" aria-labelledby="destinations-heading" className="py-16 lg:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
@@ -42,7 +42,7 @@ export const DestinationsSection: React.FC<DestinationsSectionProps> = ({
             <GraduationCap className="w-3.5 h-3.5" />
             Global Study Hubs
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
+          <h2 id="destinations-heading" className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
             Explore Top Study Destinations
           </h2>
           <p className="mt-3 text-base sm:text-lg text-slate-600">
@@ -81,7 +81,7 @@ export const DestinationsSection: React.FC<DestinationsSectionProps> = ({
         {/* Destination Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredDestinations.map((dest) => (
-            <div
+            <article
               key={dest.id}
               className="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group hover:-translate-y-1"
             >
@@ -89,13 +89,17 @@ export const DestinationsSection: React.FC<DestinationsSectionProps> = ({
               <div className="relative h-48 w-full overflow-hidden">
                 <img
                   src={dest.heroImage}
-                  alt={dest.name}
+                  alt={`Study abroad in ${dest.name} - University campus and global student life`}
+                  loading="lazy"
+                  decoding="async"
+                  width={600}
+                  height={400}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent"></div>
                 <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-lg text-xs font-bold text-slate-900 flex items-center gap-1.5 shadow-xs">
                   <span className="text-base">{dest.flag}</span>
-                  <span>{dest.name}</span>
+                  <h3 className="text-xs font-bold text-slate-900 inline">{dest.name}</h3>
                 </div>
                 <div className="absolute top-3 right-3 bg-emerald-600/90 backdrop-blur-xs text-white text-[11px] font-bold px-2 py-0.5 rounded-md">
                   {dest.visaSuccessRate} Visa Success
@@ -195,7 +199,7 @@ export const DestinationsSection: React.FC<DestinationsSectionProps> = ({
                   </button>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
 
@@ -207,7 +211,11 @@ export const DestinationsSection: React.FC<DestinationsSectionProps> = ({
               <div className="relative h-56 sm:h-64 w-full">
                 <img
                   src={selectedDestination.heroImage}
-                  alt={selectedDestination.name}
+                  alt={`Admissions and university overview for ${selectedDestination.name}`}
+                  loading="lazy"
+                  decoding="async"
+                  width={800}
+                  height={450}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>

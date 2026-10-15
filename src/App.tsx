@@ -58,8 +58,16 @@ function MainApp() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+      {/* Skip to Content for Accessibility / Screen Readers */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-xl focus:shadow-xl focus:font-bold focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       {/* Top Advisory Banner */}
-      <div className="bg-slate-900 text-slate-200 text-[11px] sm:text-xs py-2 px-4 text-center font-medium border-b border-slate-800 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+      <div role="complementary" aria-label="Admissions Announcement" className="bg-slate-900 text-slate-200 text-[11px] sm:text-xs py-2 px-4 text-center font-medium border-b border-slate-800 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
           <span>
@@ -102,8 +110,8 @@ function MainApp() {
         onOpenFreeSession={() => setIsFreeSessionOpen(true)}
       />
 
-      {/* Main Body Routing */}
-      <main className="flex-1">
+      {/* Main Content Area */}
+      <main id="main-content" role="main" tabIndex={-1} className="flex-1 focus:outline-none">
         {/* ADMIN PORTAL VIEW */}
         {activeTab === 'admin' && (
           <AdminPortal

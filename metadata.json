@@ -1,6 +1,6 @@
 {
   "name": "Upbeat Abroad Education",
-  "description": "Premier global study abroad advisory platform featuring destination guides, high-ROI career mapping, AI advisor, scholarship insights, and expert counseling booking.",
+  "description": "Navigate study abroad with Upbeat Abroad Education. Expert admissions counseling, university shortlisting, scholarships, visa prep, and high-ROI career mapping across USA, UK, Germany, Canada, Australia & more.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -91,7 +91,7 @@ export const ContactUsSection: React.FC<ContactUsSectionProps> = ({
   };
 
   return (
-    <section id="contact-section" className="py-16 lg:py-24 bg-white">
+    <section id="contact-section" aria-labelledby="contact-heading" className="py-16 lg:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
@@ -99,7 +99,7 @@ export const ContactUsSection: React.FC<ContactUsSectionProps> = ({
             <Mail className="w-3.5 h-3.5" />
             Global Support
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
+          <h2 id="contact-heading" className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
             Get in Touch with Our Global Advisors
           </h2>
           <p className="mt-3 text-base sm:text-lg text-slate-600">
@@ -232,7 +232,7 @@ export const ContactUsSection: React.FC<ContactUsSectionProps> = ({
           </div>
 
           {/* Right Direct Contact Channels: 5 cols */}
-          <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
+          <aside aria-label="Direct Admissions Helpline and Contact Channels" className="lg:col-span-5 flex flex-col justify-between space-y-6">
             {/* Asia Regional Desk Helpline Card */}
             <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-950 text-white rounded-3xl p-6 border border-indigo-700/40 shadow-md">
               <div className="flex items-center justify-between mb-3">
@@ -339,7 +339,7 @@ export const ContactUsSection: React.FC<ContactUsSectionProps> = ({
                 <span>Your academic data and phone number are strictly confidential. We never sell student data or spam.</span>
               </div>
             </div>
-          </div>
+          </aside>
         </div>
 
 

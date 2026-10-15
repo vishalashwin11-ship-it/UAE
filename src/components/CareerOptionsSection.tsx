@@ -74,7 +74,7 @@ export const CareerOptionsSection: React.FC<CareerOptionsSectionProps> = ({
   const roi = calculateRoiDetails();
 
   return (
-    <section id="careers-section" className="py-16 lg:py-24 bg-slate-50 border-t border-b border-slate-200/80">
+    <section id="careers-section" aria-labelledby="careers-heading" className="py-16 lg:py-24 bg-slate-50 border-t border-b border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
@@ -82,7 +82,7 @@ export const CareerOptionsSection: React.FC<CareerOptionsSectionProps> = ({
             <Briefcase className="w-3.5 h-3.5" />
             Strategic Outcomes
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
+          <h2 id="careers-heading" className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
             Top Career Options with Respect to Destination
           </h2>
           <p className="mt-3 text-base sm:text-lg text-slate-600">
@@ -149,7 +149,7 @@ export const CareerOptionsSection: React.FC<CareerOptionsSectionProps> = ({
         {/* Career Pathways Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPathways.map((pathway) => (
-            <div
+            <article
               key={pathway.id}
               className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between hover:border-indigo-300 group"
             >
@@ -244,7 +244,7 @@ export const CareerOptionsSection: React.FC<CareerOptionsSectionProps> = ({
                   <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
-            </div>
+            </article>
           ))}
         </div>
 
