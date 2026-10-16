@@ -14,7 +14,7 @@ import {
   setDoc,
   FirebaseUser
 } from '../firebase';
-import { pushRegistrationToFirestore } from '../services/registrationService';
+import { pushRegistrationToFirestore, adminLoginApi, adminLogoutApi, verifyAdminSessionApi, getAdminSessionToken } from '../services/registrationService';
 
 export interface StudentProfile {
   uid: string;
@@ -81,7 +81,8 @@ interface AuthContextType {
   signInWithEmail: (email: string, pass: string) => Promise<void>;
   signUpWithEmail: (email: string, pass: string, name: string) => Promise<void>;
   signInAsDemoStudent: () => void;
-  loginAsAdmin: () => void;
+  adminLogin: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  adminLogout: () => Promise<void>;
   logout: () => Promise<void>;
   updateProfileData: (data: Partial<StudentProfile>) => Promise<void>;
   generateNewRecommendations: (criteria: {
@@ -101,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<any | null>(null);
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [adminSessionVerified, setAdminSessionVerified] = useState<boolean>(false);
   const [applications, setApplications] = useState<StudentApplication[]>([]);
   const [courseRecommendations, setCourseRecommendations] = useState<CourseRecommendation[]>([]);
 
@@ -347,6 +349,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
+    // Check if an existing admin session is active and valid with the backend
+    const checkAdminSession = async () => {
+      const token = getAdminSessionToken();
+      if (token) {
+        const isValid = await verifyAdminSessionApi();
+        setAdminSessionVerified(isValid);
+      } else {
+        setAdminSessionVerified(false);
+      }
+    };
+    checkAdminSession();
+
     return () => unsubscribe();
   }, []);
 
@@ -513,17 +527,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const loginAsAdmin = () => {
-    const adminUser = {
-      uid: 'admin-vishal-ashwin',
-      email: 'vishalashwin11@gmail.com',
-      displayName: 'Vishal Ashwin (Administrator)',
-      isAdmin: true,
-      role: 'admin',
-    };
-    setUser(adminUser);
-    setLocalData('demo_session', adminUser);
-    loadUserData(adminUser);
+  const adminLogin = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
+    setLoading(true);
+    try {
+      const res = await adminLoginApi(email, pass);
+      if (res.success && res.token) {
+        setAdminSessionVerified(true);
+        const adminUser = {
+          uid: 'admin-vishal-ashwin',
+          email: res.admin?.email || 'vishalashwin11@gmail.com',
+          displayName: res.admin?.displayName || 'Vishal Ashwin (Administrator)',
+          isAdmin: true,
+          role: 'admin',
+        };
+        setUser(adminUser);
+        setLocalData('demo_session', adminUser);
+        await loadUserData(adminUser);
+        return { success: true };
+      }
+      setAdminSessionVerified(false);
+      return { success: false, error: res.error || 'Invalid administrator credentials' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const adminLogout = async () => {
+    await adminLogoutApi();
+    setAdminSessionVerified(false);
+    localStorage.removeItem(`${LOCAL_STORAGE_KEY_PREFIX}demo_session`);
+    if (user?.email === 'vishalashwin11@gmail.com' || (user as any)?.isAdmin) {
+      setUser(null);
+      setProfile(null);
+    }
   };
 
   const logout = async () => {
@@ -532,6 +568,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // ignore
     }
+    await adminLogoutApi();
+    setAdminSessionVerified(false);
     localStorage.removeItem(`${LOCAL_STORAGE_KEY_PREFIX}demo_session`);
     setUser(null);
     setProfile(null);
@@ -590,10 +628,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // STRICT ADMIN VERIFICATION:
+  // Requires:
+  // 1. Backend session verified via cryptographically signed token
+  // 2. Active admin session token in storage
+  // 3. User account matches administrator identity
   const isAdmin = Boolean(
-    user?.email === 'vishalashwin11@gmail.com' ||
-    (user as any)?.isAdmin === true ||
-    profile?.isAdmin === true
+    adminSessionVerified &&
+    Boolean(getAdminSessionToken()) &&
+    (user?.email === 'vishalashwin11@gmail.com' || (user as any)?.isAdmin === true)
   );
 
   return (
@@ -610,7 +653,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signInWithEmail,
         signUpWithEmail,
         signInAsDemoStudent,
-        loginAsAdmin,
+        adminLogin,
+        adminLogout,
         logout,
         updateProfileData,
         generateNewRecommendations,

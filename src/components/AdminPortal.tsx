@@ -5,7 +5,8 @@ import {
   updateRegistrationStatusInFirestore, 
   deleteRegistrationFromFirestore,
   pushRegistrationToFirestore,
-  StudentRegistration 
+  StudentRegistration,
+  SECRET_ADMIN_URL
 } from '../services/registrationService';
 import { 
   ShieldCheck, 
@@ -27,22 +28,39 @@ import {
   Plus, 
   X,
   ExternalLink,
-  GraduationCap
+  GraduationCap,
+  Lock,
+  KeyRound,
+  Copy,
+  Check,
+  LogOut,
+  AlertTriangle,
+  ArrowLeft
 } from 'lucide-react';
 
 interface AdminPortalProps {
   onOpenBooking: () => void;
   onOpenWhatsApp: () => void;
+  onNavigateHome?: () => void;
 }
 
-export const AdminPortal: React.FC<AdminPortalProps> = () => {
-  const { user, loginAsAdmin } = useAuth();
+export const AdminPortal: React.FC<AdminPortalProps> = ({
+  onNavigateHome,
+}) => {
+  const { user, isAdmin, adminLogin, adminLogout } = useAuth();
   const [registrations, setRegistrations] = useState<StudentRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sourceFilter, setSourceFilter] = useState<string>('All');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Strict Login Form State
+  const [adminEmailInput, setAdminEmailInput] = useState('vishalashwin11@gmail.com');
+  const [adminPasswordInput, setAdminPasswordInput] = useState('');
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [copiedSecretUrl, setCopiedSecretUrl] = useState(false);
 
   // Manual Add Form State
   const [manualName, setManualName] = useState('');
@@ -63,8 +81,33 @@ export const AdminPortal: React.FC<AdminPortalProps> = () => {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (isAdmin) {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [isAdmin]);
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    setIsAuthenticating(true);
+    const res = await adminLogin(adminEmailInput, adminPasswordInput);
+    setIsAuthenticating(false);
+    if (res.success) {
+      setAdminPasswordInput('');
+      await loadData();
+    } else {
+      setLoginError(res.error || 'Authentication rejected. Please check your credentials.');
+    }
+  };
+
+  const handleCopySecretUrl = () => {
+    const fullUrl = `${window.location.origin}${SECRET_ADMIN_URL}`;
+    navigator.clipboard.writeText(fullUrl);
+    setCopiedSecretUrl(true);
+    setTimeout(() => setCopiedSecretUrl(false), 2500);
+  };
 
   const handleStatusChange = async (id: string, newStatus: StudentRegistration['status']) => {
     setRegistrations((prev) =>
@@ -226,6 +269,148 @@ export const AdminPortal: React.FC<AdminPortalProps> = () => {
     }
   };
 
+  // STRICT ACCESS PROTECTION: If user is not authenticated as administrator with valid backend token
+  if (!isAdmin) {
+    return (
+      <div className="min-h-[85vh] bg-slate-950 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          {/* Ambient background glow */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -ml-16 -mb-16"></div>
+
+          <div className="relative z-10 space-y-6">
+            {/* Header Lock Icon & Badge */}
+            <div className="text-center space-y-2">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/10 mb-3">
+                <Lock className="w-8 h-8" />
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20 text-[11px] font-bold tracking-wider uppercase">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Restricted Access Portal</span>
+              </div>
+              <h1 className="text-2xl font-black text-white font-display tracking-tight">
+                Administrator Authentication
+              </h1>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                Strict login protection is enforced. You must authenticate with verified administrator credentials to decrypt and view sensitive student records.
+              </p>
+            </div>
+
+            {/* Secret URL Notice */}
+            <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 text-left space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-300">
+                <span className="flex items-center gap-1.5 text-amber-400">
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>Secret Gateway Route:</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopySecretUrl}
+                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold"
+                >
+                  {copiedSecretUrl ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-400" />
+                      <span className="text-emerald-400">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span>Copy Link</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <code className="block px-2.5 py-1.5 rounded-lg bg-slate-950 font-mono text-[11px] text-amber-300 border border-slate-800 break-all select-all">
+                {SECRET_ADMIN_URL}
+              </code>
+              <p className="text-[10px] text-slate-400">
+                Default public admin buttons have been removed from the navbar. Bookmark this secret URL for all future logins.
+              </p>
+            </div>
+
+            {/* Error Message */}
+            {loginError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2 animate-in fade-in">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <span>{loginError}</span>
+              </div>
+            )}
+
+            {/* Strict Login Form */}
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  Administrator Email / Username
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    required
+                    value={adminEmailInput}
+                    onChange={(e) => setAdminEmailInput(e.target.value)}
+                    placeholder="vishalashwin11@gmail.com"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 placeholder-slate-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  Admin Master Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="password"
+                    required
+                    value={adminPasswordInput}
+                    onChange={(e) => setAdminPasswordInput(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 placeholder-slate-600"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isAuthenticating}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+              >
+                {isAuthenticating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Verifying Secure Credentials...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4 text-slate-950" />
+                    <span>Verify Credentials & Enter Dashboard</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Back to Home CTA */}
+            {onNavigateHome && (
+              <div className="pt-2 text-center border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={onNavigateHome}
+                  className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1.5 transition-colors font-medium"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Return to Public Website</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="py-8 lg:py-12 bg-slate-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -293,7 +478,45 @@ export const AdminPortal: React.FC<AdminPortalProps> = () => {
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Student Lead</span>
               </button>
+
+              <button
+                onClick={adminLogout}
+                className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-md shadow-rose-600/20"
+                title="End active administrator session"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Secure Logout</span>
+              </button>
             </div>
+          </div>
+
+          {/* Secret URL & Security Status Banner */}
+          <div className="mt-5 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2 text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="font-bold text-emerald-400">Strict Auth Enforced:</span>
+              <span className="text-slate-400">Protected Backend • Secret URL:</span>
+              <code className="px-2 py-0.5 rounded bg-slate-950 font-mono text-[11px] text-amber-300 border border-slate-800">
+                {SECRET_ADMIN_URL}
+              </code>
+            </div>
+            <button
+              type="button"
+              onClick={handleCopySecretUrl}
+              className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+            >
+              {copiedSecretUrl ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-slate-300" />
+                  <span>Copy Secret URL</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 

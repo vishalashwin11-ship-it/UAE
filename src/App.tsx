@@ -17,21 +17,53 @@ import { AuthModal } from './components/AuthModal';
 import { StudentPortal } from './components/StudentPortal';
 import { AdminPortal } from './components/AdminPortal';
 import { FreeSessionModal } from './components/FreeSessionModal';
+import { SECRET_ADMIN_URL } from './services/registrationService';
 import { Sparkles, Calendar, MessageSquare, ArrowRight, GraduationCap, FileCheck2, ShieldCheck, Phone } from 'lucide-react';
 
 function MainApp() {
-  const { user, isAdmin, loginAsAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('home');
   const [isAiChatOpen, setIsAiChatOpen] = useState<boolean>(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isFreeSessionOpen, setIsFreeSessionOpen] = useState<boolean>(false);
-  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup' | 'admin'>('signin');
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
 
   // Pre-fill parameters for booking
   const [bookingDestination, setBookingDestination] = useState<string>('United States');
   const [bookingService, setBookingService] = useState<string>('');
   const [bookingCareer, setBookingCareer] = useState<string>('');
+
+  // Detect secret URL path or hash on load
+  React.useEffect(() => {
+    const handleUrlRoute = () => {
+      const pathname = window.location.pathname;
+      const hash = window.location.hash;
+      const search = window.location.search;
+
+      if (
+        pathname === SECRET_ADMIN_URL ||
+        pathname.startsWith('/upbeat-secure-console') ||
+        hash === `#${SECRET_ADMIN_URL}` ||
+        search.includes('admin_key=')
+      ) {
+        setActiveTab('admin');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (pathname === '/admin' || pathname === '/admin/' || hash === '#admin') {
+        // Disallow and redirect legacy/predictable admin path
+        window.history.replaceState(null, '', '/');
+        setActiveTab('home');
+      }
+    };
+
+    handleUrlRoute();
+    window.addEventListener('popstate', handleUrlRoute);
+    window.addEventListener('hashchange', handleUrlRoute);
+    return () => {
+      window.removeEventListener('popstate', handleUrlRoute);
+      window.removeEventListener('hashchange', handleUrlRoute);
+    };
+  }, []);
 
   const handleOpenBooking = (dest?: string, service?: string, career?: string) => {
     if (dest) setBookingDestination(dest);
@@ -41,7 +73,7 @@ function MainApp() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleOpenAuth = (mode: 'signin' | 'signup' | 'admin' = 'signin') => {
+  const handleOpenAuth = (mode: 'signin' | 'signup' = 'signin') => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
   };
@@ -117,6 +149,11 @@ function MainApp() {
           <AdminPortal
             onOpenBooking={() => handleOpenBooking()}
             onOpenWhatsApp={() => setIsWhatsAppOpen(true)}
+            onNavigateHome={() => {
+              setActiveTab('home');
+              window.history.pushState(null, '', '/');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
           />
         )}
 
@@ -349,12 +386,8 @@ function MainApp() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={(targetMode?: string) => {
-          if (targetMode === 'admin' || authModalMode === 'admin') {
-            setActiveTab('admin');
-          } else {
-            setActiveTab('portal');
-          }
+        onSuccess={() => {
+          setActiveTab('portal');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         initialMode={authModalMode}

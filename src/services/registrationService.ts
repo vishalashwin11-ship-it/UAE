@@ -45,6 +45,102 @@ export interface BookingPayload {
 }
 
 const LOCAL_STORAGE_KEY = 'upbeat_master_registrations';
+const ADMIN_TOKEN_KEY = 'upbeat_admin_sec_token';
+export const SECRET_ADMIN_URL = '/upbeat-secure-console-9354';
+
+export const getAdminSessionToken = (): string | null => {
+  try {
+    return sessionStorage.getItem(ADMIN_TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+};
+
+export const setAdminSessionToken = (token: string | null) => {
+  try {
+    if (token) {
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+      localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    } else {
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+      localStorage.removeItem(ADMIN_TOKEN_KEY);
+    }
+  } catch {
+    // ignore
+  }
+};
+
+export const clearAdminSessionToken = () => {
+  setAdminSessionToken(null);
+};
+
+export async function adminLoginApi(email: string, pass: string): Promise<{
+  success: boolean;
+  token?: string;
+  admin?: any;
+  error?: string;
+  secretPath?: string;
+}> {
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success && data.token) {
+      setAdminSessionToken(data.token);
+      return {
+        success: true,
+        token: data.token,
+        admin: data.admin,
+        secretPath: data.secretPath,
+      };
+    }
+    return {
+      success: false,
+      error: data.error || 'Authentication rejected by security policy.',
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'Unable to connect to administrative security gateway.',
+    };
+  }
+}
+
+export async function verifyAdminSessionApi(): Promise<boolean> {
+  const token = getAdminSessionToken();
+  if (!token) return false;
+  try {
+    const res = await fetch('/api/admin/verify', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return Boolean(data.success && data.authenticated);
+    }
+    clearAdminSessionToken();
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export async function adminLogoutApi(): Promise<void> {
+  const token = getAdminSessionToken();
+  if (token) {
+    try {
+      await fetch('/api/admin/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      // ignore
+    }
+  }
+  clearAdminSessionToken();
+}
 
 const getCachedRegistrations = (): StudentRegistration[] => {
   try {
@@ -150,12 +246,46 @@ export async function pushBookingToFirestore(booking: BookingPayload): Promise<v
 }
 
 /**
- * Fetch all registrations for Admin User (from Firestore + Server + Local Cache)
+ * Fetch all registrations for Admin User (STRICT: Requires Admin Session Token)
  */
 export async function fetchAllRegistrations(): Promise<StudentRegistration[]> {
+  const token = getAdminSessionToken();
+  if (!token) {
+    console.warn('[Security] Unauthorized attempt to fetch sensitive registration data without an active admin token.');
+    return [];
+  }
+
   const mergedMap = new Map<string, StudentRegistration>();
 
-  // 1. Try to fetch from Firestore `/registrations`
+  // 1. Fetch from Express backend with Bearer Authorization
+  try {
+    const res = await fetch('/api/registrations', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      console.warn('[Security] Backend rejected admin token. Session invalid.');
+      clearAdminSessionToken();
+      return [];
+    }
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.registrations)) {
+        data.registrations.forEach((r: StudentRegistration) => {
+          if (!mergedMap.has(r.id)) {
+            mergedMap.set(r.id, r);
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[Security] Error contacting backend registrations API:', err);
+  }
+
+  // 2. Fetch from Firestore `/registrations` if admin is authenticated in Firebase
   try {
     const regCollection = collection(db, 'registrations');
     const q = query(regCollection, orderBy('createdAt', 'desc'));
@@ -168,24 +298,7 @@ export async function fetchAllRegistrations(): Promise<StudentRegistration[]> {
       }
     });
   } catch {
-    // If rules require admin auth, fallback to server and local cache
-  }
-
-  // 2. Try to fetch from Express server `/api/registrations`
-  try {
-    const res = await fetch('/api/registrations');
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.registrations)) {
-        data.registrations.forEach((r: StudentRegistration) => {
-          if (!mergedMap.has(r.id)) {
-            mergedMap.set(r.id, r);
-          }
-        });
-      }
-    }
-  } catch {
-    // ignore
+    // Firestore rules enforce isAdmin() which requires Firebase auth
   }
 
   // 3. Merge with local cache
@@ -204,13 +317,31 @@ export async function fetchAllRegistrations(): Promise<StudentRegistration[]> {
 }
 
 /**
- * Update registration status in Firestore and Local Cache
+ * Update registration status in Firestore, Server, and Local Cache
  */
 export async function updateRegistrationStatusInFirestore(
   id: string,
   newStatus: StudentRegistration['status']
 ): Promise<void> {
-  // Update in Firestore
+  const token = getAdminSessionToken();
+
+  // 1. Sync to backend API if admin token exists
+  if (token) {
+    try {
+      await fetch(`/api/registrations/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch {
+      // ignore
+    }
+  }
+
+  // 2. Update in Firestore
   try {
     const regRef = doc(db, 'registrations', id);
     await updateDoc(regRef, { status: newStatus });
@@ -218,7 +349,7 @@ export async function updateRegistrationStatusInFirestore(
     // ignore
   }
 
-  // Update in local cache
+  // 3. Update in local cache
   const list = getCachedRegistrations();
   const idx = list.findIndex((item) => item.id === id);
   if (idx !== -1) {
@@ -228,9 +359,26 @@ export async function updateRegistrationStatusInFirestore(
 }
 
 /**
- * Delete a registration from Firestore and Local Cache
+ * Delete a registration from Firestore, Server, and Local Cache
  */
 export async function deleteRegistrationFromFirestore(id: string): Promise<void> {
+  const token = getAdminSessionToken();
+
+  // 1. Sync to backend API if admin token exists
+  if (token) {
+    try {
+      await fetch(`/api/registrations/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch {
+      // ignore
+    }
+  }
+
+  // 2. Delete from Firestore
   try {
     const regRef = doc(db, 'registrations', id);
     await deleteDoc(regRef);
@@ -238,6 +386,7 @@ export async function deleteRegistrationFromFirestore(id: string): Promise<void>
     // ignore
   }
 
+  // 3. Remove from local cache
   const list = getCachedRegistrations();
   const filtered = list.filter((item) => item.id !== id);
   setCachedRegistrations(filtered);

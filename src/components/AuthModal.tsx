@@ -16,8 +16,8 @@ import {
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (target?: 'admin' | 'student') => void;
-  initialMode?: 'signin' | 'signup' | 'admin';
+  onSuccess: (target?: 'student') => void;
+  initialMode?: 'signin' | 'signup';
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -31,10 +31,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     signInWithEmail, 
     signUpWithEmail, 
     signInAsDemoStudent,
-    loginAsAdmin 
   } = useAuth();
   
-  const [mode, setMode] = useState<'signin' | 'signup' | 'admin'>(initialMode);
+  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode === 'signup' ? 'signup' : 'signin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,7 +43,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setMode(initialMode);
+      setMode(initialMode === 'signup' ? 'signup' : 'signin');
       setError(null);
     }
   }, [initialMode, isOpen]);
@@ -60,22 +59,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(true);
 
     try {
-      if (mode === 'admin') {
-        if (email.trim() && password.trim()) {
-          try {
-            await signInWithEmail(email, password);
-          } catch {
-            // Allow authorized admin login fallback
-            loginAsAdmin();
-          }
-        } else {
-          loginAsAdmin();
-        }
-        onSuccess('admin');
-        onClose();
-        return;
-      }
-
       if (mode === 'signup') {
         if (!name.trim()) {
           setError('Please provide your full name.');
@@ -129,22 +112,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     onClose();
   };
 
-  const handleQuickAdminLogin = () => {
-    loginAsAdmin();
-    onSuccess('admin');
-    onClose();
-  };
-
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/65 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
         {/* Dynamic Header Banner */}
-        <div className={`p-6 text-white relative transition-colors duration-300 ${
-          mode === 'admin'
-            ? 'bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900'
-            : 'bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800'
-        }`}>
+        <div className="p-6 text-white relative transition-colors duration-300 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors"
@@ -153,40 +126,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </button>
           
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 text-[11px] font-bold tracking-wide uppercase mb-2">
-            {mode === 'admin' ? (
-              <>
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
-                <span>Admin Portal Access</span>
-              </>
-            ) : (
-              <>
-                <GraduationCap className="w-3.5 h-3.5 text-amber-300" />
-                <span>Student Advisory Portal</span>
-              </>
-            )}
+            <GraduationCap className="w-3.5 h-3.5 text-amber-300" />
+            <span>Student Advisory Portal</span>
           </div>
 
           <h3 className="text-xl font-extrabold tracking-tight font-display">
-            {mode === 'admin' 
-              ? 'Admin Portal Sign In' 
-              : mode === 'signin' 
-                ? 'Student Sign In' 
-                : 'Create Free Student Account'}
+            {mode === 'signin' ? 'Student Sign In' : 'Create Free Student Account'}
           </h3>
           <p className="text-xs text-white/80 mt-1 leading-relaxed">
-            {mode === 'admin'
-              ? 'Access real-time student registrations, counseling bookings, and application leads.'
-              : 'Access your personalized Course Recommendation Report & real-time application tracker.'}
+            Access your personalized Course Recommendation Report & real-time application tracker.
           </p>
         </div>
 
-        {/* Tab Selector: Student Sign In, Student Sign Up, Admin Portal */}
+        {/* Tab Selector: Student Sign In, Student Sign Up */}
         <div className="p-4 sm:p-6 pb-0">
-          <div className="grid grid-cols-3 p-1 bg-slate-100 rounded-xl text-xs font-bold gap-1 border border-slate-200/60">
+          <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl text-xs font-bold gap-1 border border-slate-200/60">
             <button
               type="button"
               onClick={() => { setMode('signin'); setError(null); }}
-              className={`py-2 px-1 rounded-lg transition-all text-center flex items-center justify-center gap-1 ${
+              className={`py-2 px-1 rounded-lg transition-all text-center flex items-center justify-center gap-1.5 ${
                 mode === 'signin' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -196,21 +154,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="button"
               onClick={() => { setMode('signup'); setError(null); }}
-              className={`py-2 px-1 rounded-lg transition-all text-center flex items-center justify-center gap-1 ${
+              className={`py-2 px-1 rounded-lg transition-all text-center flex items-center justify-center gap-1.5 ${
                 mode === 'signup' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <span>Sign Up</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setMode('admin'); setError(null); }}
-              className={`py-2 px-1 rounded-lg transition-all text-center flex items-center justify-center gap-1 ${
-                mode === 'admin' ? 'bg-amber-600 text-white shadow-xs' : 'text-amber-800 hover:text-amber-950 hover:bg-amber-100/50'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Admin Portal</span>
+              <span>Create Account</span>
             </button>
           </div>
         </div>
@@ -247,86 +195,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
-          {/* ADMIN PORTAL TAB CONTENT */}
-          {mode === 'admin' ? (
-            <div className="space-y-4">
-              <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/90 rounded-2xl space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-amber-950 block">Director & Counseling Administrator</span>
-                    <span className="text-[11px] text-amber-800 block mt-0.5 leading-relaxed">
-                      Instant authorized access to view all registrations, export CSV data, and update student status.
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleQuickAdminLogin}
-                  className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 hover:shadow-md"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Enter Admin Portal</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="relative flex items-center justify-center">
-                <div className="border-t border-slate-200 w-full"></div>
-                <span className="bg-white px-2.5 text-[10px] uppercase font-bold text-slate-400 absolute">
-                  Or enter administrator credentials
-                </span>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                    Admin Email
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="email"
-                      placeholder="admin@upbeatabroad.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-9 pr-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                    Admin Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-9 pr-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-1"
-                >
-                  <ShieldCheck className="w-4 h-4 text-amber-400" />
-                  <span>{loading ? 'Authenticating...' : 'Sign In as Administrator'}</span>
-                </button>
-              </form>
-            </div>
-          ) : (
-            /* STUDENT TAB CONTENT */
-            <div className="space-y-4">
+          {/* STUDENT AUTH CONTENT */}
+          <div className="space-y-4">
               {/* Quick Demo Access Button */}
               <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-2xl flex items-center justify-between gap-3">
                 <div>
@@ -454,9 +324,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
-    </div>
   );
 };

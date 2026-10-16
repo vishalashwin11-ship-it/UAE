@@ -1,7 +1,8 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 import { GoogleGenAI } from '@google/genai';
 
 dotenv.config();
@@ -13,6 +14,61 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json());
+
+// Administrator Security Configuration
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'vishalashwin11@gmail.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'UpbeatAdmin#2026!Secure';
+const SECRET_ADMIN_PATH = '/upbeat-secure-console-9354';
+
+// In-memory active administrator sessions (token -> session)
+interface AdminSession {
+  email: string;
+  createdAt: number;
+  expiresAt: number;
+}
+
+const activeAdminSessions = new Map<string, AdminSession>();
+const loginAttempts = new Map<string, { count: number; lockedUntil: number }>();
+
+// Strict Admin Authorization Middleware
+const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  const customHeader = req.headers['x-admin-token'];
+  
+  let token = '';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7).trim();
+  } else if (typeof customHeader === 'string') {
+    token = customHeader.trim();
+  }
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: 'Access Denied: Administrator authentication token required to view or modify sensitive records.',
+    });
+  }
+
+  const session = activeAdminSessions.get(token);
+  if (!session) {
+    return res.status(401).json({
+      success: false,
+      error: 'Access Denied: Invalid or expired administrator session. Please re-authenticate.',
+    });
+  }
+
+  if (session.expiresAt < Date.now()) {
+    activeAdminSessions.delete(token);
+    return res.status(401).json({
+      success: false,
+      error: 'Session Expired: Your administrator session has expired for security reasons. Please login again.',
+    });
+  }
+
+  // Session is valid
+  (req as any).adminSession = session;
+  next();
+};
 
 // Initialize Google GenAI
 const apiKey = process.env.GEMINI_API_KEY || '';
@@ -192,14 +248,129 @@ app.post('/api/registrations', (req: Request, res: Response) => {
   res.json({ success: true, registration: newReg });
 });
 
-// API: Get all registrations (for Admin Portal)
-app.get('/api/registrations', (_req: Request, res: Response) => {
+// API: Admin Authentication (Strict Credentials Required)
+app.post('/api/admin/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  
+  // Rate limiting / Brute-force protection
+  const attemptInfo = loginAttempts.get(ip) || { count: 0, lockedUntil: 0 };
+  const now = Date.now();
+  if (attemptInfo.lockedUntil > now) {
+    const minutesLeft = Math.ceil((attemptInfo.lockedUntil - now) / 60000);
+    return res.status(429).json({
+      success: false,
+      error: `Too many failed login attempts. Gateway locked for ${minutesLeft} more minute(s).`,
+    });
+  }
+
+  // Strict email and password check
+  const isEmailValid = email && (
+    email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase() ||
+    email.trim().toLowerCase() === 'admin@upbeatabroad.com'
+  );
+  const isPasswordValid = password && password.trim() === ADMIN_PASSWORD;
+
+  if (!isEmailValid || !isPasswordValid) {
+    attemptInfo.count += 1;
+    if (attemptInfo.count >= 5) {
+      attemptInfo.lockedUntil = now + 15 * 60 * 1000; // 15-minute lock
+    }
+    loginAttempts.set(ip, attemptInfo);
+
+    return res.status(401).json({
+      success: false,
+      error: 'Invalid administrator credentials. Access attempt has been security-logged.',
+      remainingAttempts: Math.max(0, 5 - attemptInfo.count),
+    });
+  }
+
+  // Login successful: reset failed counter
+  loginAttempts.delete(ip);
+
+  // Generate a cryptographically secure token (64 hex characters)
+  const token = crypto.randomBytes(32).toString('hex');
+  const sessionDuration = 8 * 60 * 60 * 1000; // 8 hours validity
+  const expiresAt = now + sessionDuration;
+
+  activeAdminSessions.set(token, {
+    email: ADMIN_EMAIL,
+    createdAt: now,
+    expiresAt,
+  });
+
+  return res.json({
+    success: true,
+    message: 'Administrator authentication successful.',
+    token,
+    admin: {
+      email: ADMIN_EMAIL,
+      displayName: 'Vishal Ashwin (Senior Administrator)',
+      role: 'super_admin',
+    },
+    secretPath: SECRET_ADMIN_PATH,
+    expiresAt,
+  });
+});
+
+// API: Verify Admin Token status
+app.get('/api/admin/verify', requireAdminAuth, (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    authenticated: true,
+    adminEmail: ADMIN_EMAIL,
+    session: (req as any).adminSession,
+    secretPath: SECRET_ADMIN_PATH,
+  });
+});
+
+// API: Admin Logout
+app.post('/api/admin/logout', (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7).trim();
+    activeAdminSessions.delete(token);
+  }
+  res.json({ success: true, message: 'Admin session terminated securely.' });
+});
+
+// API: Get all registrations (STRICTLY PROTECTED - Admin Authorization Required)
+app.get('/api/registrations', requireAdminAuth, (_req: Request, res: Response) => {
   res.json({
     success: true,
     total: registrations.length,
     registrations,
-    adminEmail: 'vishalashwin11@gmail.com',
+    adminEmail: ADMIN_EMAIL,
+    timestamp: new Date().toISOString(),
   });
+});
+
+// API: Update registration status (STRICTLY PROTECTED - Admin Authorization Required)
+app.patch('/api/registrations/:id', requireAdminAuth, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status, counselor, notes } = req.body;
+  const index = registrations.findIndex((r) => r.id === id);
+  if (index === -1) {
+    return res.status(404).json({ success: false, error: 'Registration not found' });
+  }
+
+  if (status) registrations[index].status = status;
+  if (counselor) registrations[index].counselor = counselor;
+  if (notes !== undefined) registrations[index].notes = notes;
+  registrations[index].updatedAt = new Date().toISOString();
+
+  res.json({ success: true, registration: registrations[index] });
+});
+
+// API: Delete registration record (STRICTLY PROTECTED - Admin Authorization Required)
+app.delete('/api/registrations/:id', requireAdminAuth, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const index = registrations.findIndex((r) => r.id === id);
+  if (index === -1) {
+    return res.status(404).json({ success: false, error: 'Registration not found' });
+  }
+  const deleted = registrations.splice(index, 1);
+  res.json({ success: true, message: 'Record securely removed from database', deleted: deleted[0] });
 });
 
 // API: Book counselling session
@@ -296,6 +467,28 @@ app.post('/api/contact', (req: Request, res: Response) => {
     ticketId,
     message: 'Thank you for reaching out! An Upbeat regional advisor will get in touch within 3 business hours.',
   });
+});
+
+// Trap default/predictable admin paths (Security Obfuscation)
+app.get(['/admin', '/admin/login', '/admin-login', '/wp-admin', '/dashboard/admin', '/backend/admin'], (_req: Request, res: Response) => {
+  res.status(404).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>404 Not Found</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding: 60px 20px; background: #0f172a; color: #f8fafc; }
+    h1 { font-size: 32px; color: #ef4444; }
+    p { color: #94a3b8; font-size: 14px; max-width: 480px; margin: 16px auto; }
+    a { color: #38bdf8; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>404 - Endpoint Not Found</h1>
+  <p>The requested administrative path has been decommissioned or relocated for security compliance. Public access is forbidden.</p>
+  <a href="/">Return to Upbeat Abroad Education Home</a>
+</body>
+</html>`);
 });
 
 // Vite middleware or static serving
