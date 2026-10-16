@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useAuth, CourseRecommendation } from '../context/AuthContext';
+import React, { useState, useRef } from 'react';
+import { useAuth, CourseRecommendation, ADMISSION_STAGES } from '../context/AuthContext';
 import { 
   GraduationCap, 
   FileCheck2, 
@@ -21,7 +21,12 @@ import {
   RefreshCw,
   LogOut,
   ExternalLink,
-  Plus
+  Plus,
+  UploadCloud,
+  Check,
+  RotateCcw,
+  FileText,
+  ChevronRight
 } from 'lucide-react';
 
 interface StudentPortalProps {
@@ -40,8 +45,15 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
     courseRecommendations, 
     logout, 
     updateProfileData,
-    generateNewRecommendations 
+    generateNewRecommendations,
+    updateApplicationStage,
+    updateDocumentStatus,
+    resetToFreshPortal,
   } = useAuth();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [targetUploadIndex, setTargetUploadIndex] = useState<number | null>(null);
+  const [uploadNotice, setUploadNotice] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<'recommendations' | 'applications'>('recommendations');
   const [tierFilter, setTierFilter] = useState<'All' | 'Dream' | 'Target' | 'Safe'>('All');
@@ -366,32 +378,80 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                   </div>
                 </div>
 
-                {/* 6-Stage Progress Stepper */}
+                {/* Upload notification toast if active */}
+                {uploadNotice && (
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 font-medium flex items-center justify-between animate-in fade-in">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{uploadNotice}</span>
+                    </div>
+                    <button onClick={() => setUploadNotice(null)} className="text-emerald-700 hover:text-emerald-900 text-xs font-bold">×</button>
+                  </div>
+                )}
+
+                {/* Hidden File Input for document upload simulation */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0] && targetUploadIndex !== null) {
+                      const file = e.target.files[0];
+                      updateDocumentStatus(targetUploadIndex, 'Uploaded');
+                      setUploadNotice(`"${file.name}" uploaded successfully for review.`);
+                      setTimeout(() => setUploadNotice(null), 4000);
+                      setTargetUploadIndex(null);
+                    }
+                  }}
+                  className="hidden"
+                />
+
+                {/* 6-Stage Progress Stepper (Interactive - click any stage to advance or test) */}
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4">
-                    Admissions Lifecycle Timeline (Stage {activeApp.currentStage} of 6)
-                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <div>
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+                        Admissions Lifecycle Timeline (Stage {activeApp.currentStage} of 6)
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Click on any stage card below to navigate or advance your admissions milestone:
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => updateApplicationStage(Math.max(1, activeApp.currentStage - 1))}
+                        disabled={activeApp.currentStage <= 1}
+                        className="px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        ← Prev Stage
+                      </button>
+                      <button
+                        onClick={() => updateApplicationStage(Math.min(6, activeApp.currentStage + 1))}
+                        disabled={activeApp.currentStage >= 6}
+                        className="px-3 py-1.5 text-xs font-bold rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-xs"
+                      >
+                        Next Stage →
+                      </button>
+                    </div>
+                  </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-                    {[
-                      { stage: 1, name: 'Profile Evaluation', desc: 'Transcript & GRE audit' },
-                      { stage: 2, name: 'SOP & Essays', desc: 'Drafting with Ivy alumni' },
-                      { stage: 3, name: 'Application Submission', desc: 'Portal & fee waivers' },
-                      { stage: 4, name: 'Admit & Fellowship', desc: 'Offer letter review' },
-                      { stage: 5, name: 'Visa & Consular Mock', desc: 'DS-160 & interview' },
-                      { stage: 6, name: 'Pre-Departure', desc: 'Housing, flights & landing' },
-                    ].map((step) => {
+                    {ADMISSION_STAGES.map((step) => {
                       const isComplete = step.stage < activeApp.currentStage;
                       const isCurrent = step.stage === activeApp.currentStage;
                       return (
                         <div
                           key={step.stage}
-                          className={`p-4 rounded-2xl border transition-all ${
+                          onClick={() => updateApplicationStage(step.stage)}
+                          role="button"
+                          tabIndex={0}
+                          title={`Click to set Stage ${step.stage}: ${step.name}`}
+                          className={`p-4 rounded-2xl border transition-all cursor-pointer select-none text-left ${
                             isComplete
-                              ? 'bg-emerald-50/70 border-emerald-300 text-emerald-950'
+                              ? 'bg-emerald-50/70 border-emerald-300 hover:border-emerald-400 text-emerald-950 hover:shadow-xs'
                               : isCurrent
-                              ? 'bg-blue-50/80 border-blue-500 shadow-md ring-2 ring-blue-500/20 text-blue-950'
-                              : 'bg-slate-50 border-slate-200 text-slate-400'
+                              ? 'bg-blue-50/90 border-blue-500 shadow-md ring-2 ring-blue-500/20 text-blue-950'
+                              : 'bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-500 hover:text-slate-700'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-2">
@@ -410,6 +470,9 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                           <p className="text-[10px] opacity-80 leading-normal">
                             {step.desc}
                           </p>
+                          <div className="mt-2 text-[9px] font-semibold text-slate-400">
+                            {isComplete ? 'Completed' : isCurrent ? 'Active Now' : 'Upcoming'}
+                          </div>
                         </div>
                       );
                     })}
@@ -417,51 +480,150 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                 </div>
 
                 {/* Next Action Box */}
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <AlertCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider block">
-                        Immediate Action Item Required
+                      <span className="text-[10px] uppercase font-bold text-blue-800 tracking-wider block">
+                        Active Stage Milestone Action
                       </span>
-                      <p className="text-xs sm:text-sm font-bold text-amber-950 mt-0.5">
+                      <p className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5">
                         {activeApp.nextAction}
                       </p>
-                      <span className="text-xs text-amber-800 mt-1 block">
-                        Target Deadline: <strong>{activeApp.actionDeadline}</strong>
+                      <span className="text-xs text-slate-600 mt-1 block">
+                        Target Timeline: <strong className="text-blue-900">{activeApp.actionDeadline}</strong>
                       </span>
                     </div>
                   </div>
 
-                  <button
-                    onClick={onOpenBooking}
-                    className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors shrink-0"
-                  >
-                    Schedule Document Review
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={onOpenBooking}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
+                    >
+                      Book 1-on-1 Session
+                    </button>
+                    <button
+                      onClick={onOpenWhatsApp}
+                      className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200 transition-colors"
+                    >
+                      Ask Advisor
+                    </button>
+                  </div>
                 </div>
 
                 {/* Document Verification Table */}
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 mb-3">
-                    Application Document Checklist & Verification
-                  </h3>
-                  <div className="bg-slate-50 rounded-2xl border border-slate-200 divide-y divide-slate-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <div>
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+                        Application Document Checklist & Verification
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Fresh portal state: Upload academic documents or change status as review progresses.
+                      </p>
+                    </div>
+
+                    <span className="text-xs font-semibold text-slate-500">
+                      {activeApp.documents.filter(d => d.status === 'Verified').length} of {activeApp.documents.length} Verified
+                    </span>
+                  </div>
+
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
                     {activeApp.documents.map((docItem, idx) => (
-                      <div key={idx} className="p-3.5 flex items-center justify-between text-xs">
-                        <span className="font-semibold text-slate-800">{docItem.name}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                          docItem.status === 'Verified'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : docItem.status === 'Uploaded'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {docItem.status}
-                        </span>
+                      <div key={idx} className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs bg-white hover:bg-slate-50/70 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <FileText className="w-4 h-4 text-slate-400 shrink-0" />
+                          <div>
+                            <span className="font-semibold text-slate-800 block">{docItem.name}</span>
+                            <span className="text-[10px] text-slate-400">
+                              {docItem.status === 'Verified' ? 'Approved by Admissions Team' : docItem.status === 'Uploaded' ? 'Awaiting counselor review' : 'No document uploaded yet'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
+                          {/* Status Pill */}
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md border ${
+                            docItem.status === 'Verified'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : docItem.status === 'Uploaded'
+                              ? 'bg-blue-50 text-blue-800 border-blue-200'
+                              : docItem.status === 'Under Review'
+                              ? 'bg-purple-50 text-purple-800 border-purple-200'
+                              : 'bg-amber-50 text-amber-800 border-amber-200'
+                          }`}>
+                            {docItem.status}
+                          </span>
+
+                          {/* Quick Upload Button */}
+                          <button
+                            onClick={() => {
+                              setTargetUploadIndex(idx);
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                                fileInputRef.current.click();
+                              }
+                            }}
+                            className="px-2.5 py-1 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1"
+                            title="Upload or update document"
+                          >
+                            <UploadCloud className="w-3 h-3" />
+                            <span>Upload</span>
+                          </button>
+
+                          {/* Status Modifier Dropdown */}
+                          <select
+                            value={docItem.status}
+                            onChange={(e) => updateDocumentStatus(idx, e.target.value)}
+                            aria-label={`Change status for ${docItem.name}`}
+                            className="text-[11px] font-semibold bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                          >
+                            <option value="Pending Upload">Pending Upload</option>
+                            <option value="Uploaded">Uploaded</option>
+                            <option value="Under Review">Under Review</option>
+                            <option value="Verified">Verified</option>
+                          </select>
+                        </div>
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Stage Progression & Portal Reset Bar */}
+                <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-500">Jump to Stage:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {[1, 2, 3, 4, 5, 6].map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => updateApplicationStage(s)}
+                          className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                            activeApp.currentStage === s
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          0{s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Reset this student portal to a fresh state (Stage 1 with all documents pending)?')) {
+                        resetToFreshPortal();
+                        setUploadNotice('Portal reset to fresh Stage 1 state with all documents pending.');
+                        setTimeout(() => setUploadNotice(null), 3500);
+                      }
+                    }}
+                    className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 text-xs font-semibold rounded-xl border border-slate-200 transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Reset Portal to Fresh Stage 1</span>
+                  </button>
                 </div>
               </div>
             ) : (

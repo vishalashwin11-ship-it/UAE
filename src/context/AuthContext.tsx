@@ -38,7 +38,7 @@ export interface StudentApplication {
   programName: string;
   destination: string;
   intake: string;
-  status: 'In Review' | 'Submitted' | 'Conditional Offer' | 'Admitted' | 'Visa Processing';
+  status: 'In Review' | 'Submitted' | 'Conditional Offer' | 'Admitted' | 'Visa Processing' | string;
   currentStage: number; // 1 to 6
   stageTitle: string;
   assignedCounselor: string;
@@ -48,9 +48,69 @@ export interface StudentApplication {
   updatedAt: string;
   documents: {
     name: string;
-    status: 'Verified' | 'Pending' | 'Uploaded';
+    status: 'Verified' | 'Pending' | 'Uploaded' | 'Pending Upload' | 'Under Review' | string;
   }[];
 }
+
+export interface AdmissionStageInfo {
+  stage: number;
+  name: string;
+  desc: string;
+  action: string;
+  deadline: string;
+  status: string;
+}
+
+export const ADMISSION_STAGES: AdmissionStageInfo[] = [
+  {
+    stage: 1,
+    name: 'Profile Evaluation',
+    desc: 'Transcript, GPA & GRE/IELTS initial audit',
+    action: 'Upload academic transcripts & book 1-on-1 profile evaluation with your assigned counselor',
+    deadline: 'Next 7 Days',
+    status: 'In Profile Audit',
+  },
+  {
+    stage: 2,
+    name: 'SOP & Essays',
+    desc: 'Drafting with Ivy alumni & mentors',
+    action: 'Submit first Statement of Purpose draft & confirm 2 Academic / Work LOR referees',
+    deadline: 'Next 14 Days',
+    status: 'Drafting SOP/LORs',
+  },
+  {
+    stage: 3,
+    name: 'Application Submission',
+    desc: 'Portal applications & fee waiver codes',
+    action: 'Review finalized application packages & submit university admission portals',
+    deadline: 'Application Deadlines',
+    status: 'Submitting Applications',
+  },
+  {
+    stage: 4,
+    name: 'Admit & Fellowship',
+    desc: 'Offer letters, scholarships & I-20',
+    action: 'Review admitted offers, compare departmental scholarships & accept university offer',
+    deadline: 'Decision Deadline',
+    status: 'Admit & Scholarships',
+  },
+  {
+    stage: 5,
+    name: 'Visa & Consular Mock',
+    desc: 'DS-160 / VFS filing & consular interview prep',
+    action: 'File official visa paperwork & attend 2 simulated 1-on-1 visa mock interviews',
+    deadline: 'Interview Date',
+    status: 'Visa Processing',
+  },
+  {
+    stage: 6,
+    name: 'Pre-Departure',
+    desc: 'Housing, flights, forex & airport pickup',
+    action: 'Finalize student accommodation, international forex card & attend pre-departure briefing',
+    deadline: 'Prior to Flight',
+    status: 'Pre-Departure Ready',
+  },
+];
 
 export interface CourseRecommendation {
   id: string;
@@ -92,6 +152,9 @@ interface AuthContextType {
     gpa: string;
     testScore: string;
   }) => Promise<void>;
+  updateApplicationStage: (stageNumber: number) => Promise<void>;
+  updateDocumentStatus: (docIndex: number, newStatus: string) => Promise<void>;
+  resetToFreshPortal: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -206,29 +269,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
   ];
 
-  // Default initial active student application
+  // Default initial active student application (Fresh Stage 1: Profile Evaluation)
   const getInitialApplication = (uid: string, studentName: string): StudentApplication => ({
-    id: `UAE-${uid.slice(0, 4)}-9481`,
+    id: `UAE-${uid.slice(0, 4)}-${Math.floor(1000 + Math.random() * 9000)}`,
     userId: uid,
-    universityName: 'Technical University of Munich (TUM)',
-    programName: 'MSc in Automotive Software & Informatics',
-    destination: 'Germany 🇩🇪',
+    universityName: 'Target Universities (To be Shortlisted in Stage 1)',
+    programName: 'Admissions Evaluation & University Shortlisting',
+    destination: 'Global Admissions',
     intake: 'Fall 2026',
-    status: 'In Review',
-    currentStage: 3,
-    stageTitle: 'Stage 3: University Application Submission & Verification',
-    assignedCounselor: 'Dr. Elena Rostova (Academic Director)',
-    counselorEmail: 'elena.rostova@upbeatabroad.com',
-    nextAction: 'Upload certified degree certificate & APS verification document',
-    actionDeadline: 'November 15, 2026',
-    updatedAt: 'October 2026',
+    status: 'Profile Evaluation',
+    currentStage: 1,
+    stageTitle: 'Stage 1: Profile Evaluation & Academic Onboarding',
+    assignedCounselor: 'Senior Admissions Directorate',
+    counselorEmail: 'counseling@upbeatabroad.com',
+    nextAction: 'Upload academic transcripts & schedule 1-on-1 profile evaluation session',
+    actionDeadline: 'Next 7 Days',
+    updatedAt: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
     documents: [
-      { name: 'Undergraduate Transcripts & Degree Audit', status: 'Verified' },
-      { name: 'Statement of Purpose (SOP Draft 4)', status: 'Verified' },
-      { name: 'Letters of Recommendation (2 Academic + 1 Work)', status: 'Verified' },
-      { name: 'IELTS / TOEFL Official Score Card', status: 'Verified' },
-      { name: 'Curricular Credit Eignungsfeststellungsverfahren', status: 'Uploaded' },
-      { name: 'APS / Blocked Account Proof', status: 'Pending' },
+      { name: 'Undergraduate Transcripts & Degree Audit', status: 'Pending Upload' },
+      { name: 'Statement of Purpose (SOP Draft 1)', status: 'Pending Upload' },
+      { name: 'Letters of Recommendation (2 Academic + 1 Work)', status: 'Pending Upload' },
+      { name: 'IELTS / TOEFL Official Score Card', status: 'Pending Upload' },
+      { name: 'Curricular Credit / Resume (CV)', status: 'Pending Upload' },
+      { name: 'Passport Copy / Identity Verification', status: 'Pending Upload' },
     ],
   });
 
@@ -269,7 +332,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       createdAt: new Date().toISOString(),
     };
 
-    let userApps: StudentApplication[] = cachedApp ? [cachedApp] : [getInitialApplication(uid, userProf.displayName)];
+    // Clean up any stale legacy app from previous hardcoded stage 3 demo (where documents were falsely pre-verified)
+    const isLegacyDemoApp = Boolean(
+      cachedApp && (
+        cachedApp.currentStage === 3 ||
+        cachedApp.universityName?.includes('Technical University of Munich') ||
+        cachedApp.documents?.some((d: any) => d.status === 'Verified')
+      )
+    );
+
+    let userApps: StudentApplication[];
+    if (!cachedApp || isLegacyDemoApp) {
+      const freshApp = getInitialApplication(uid, userProf.displayName);
+      userApps = [freshApp];
+      setLocalData(`app_${uid}`, freshApp);
+    } else {
+      userApps = [cachedApp];
+    }
+
     let userRecs: CourseRecommendation[] = cachedRecs || getInitialRecommendations(uid);
 
     setProfile(userProf);
@@ -297,14 +377,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await setDoc(userDocRef, userProf, { merge: true });
       }
 
-      // Check applications
+      // Check applications in Firestore
       const appDocRef = doc(db, 'applications', `app-${uid}`);
       const appSnap = await getDoc(appDocRef);
       if (appSnap.exists()) {
         const firestoreApp = appSnap.data() as StudentApplication;
-        userApps = [firestoreApp];
-        setApplications(userApps);
-        setLocalData(`app_${uid}`, firestoreApp);
+        const isLegacyFirestoreApp = firestoreApp && (
+          firestoreApp.currentStage === 3 ||
+          firestoreApp.universityName?.includes('Technical University of Munich') ||
+          firestoreApp.documents?.some((d: any) => d.status === 'Verified')
+        );
+
+        if (isLegacyFirestoreApp) {
+          await setDoc(appDocRef, userApps[0], { merge: true });
+        } else {
+          userApps = [firestoreApp];
+          setApplications(userApps);
+          setLocalData(`app_${uid}`, firestoreApp);
+        }
       } else {
         await setDoc(appDocRef, userApps[0], { merge: true });
       }
@@ -628,6 +718,100 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateApplicationStage = async (stageNumber: number) => {
+    const stageInfo = ADMISSION_STAGES.find((s) => s.stage === stageNumber) || ADMISSION_STAGES[0];
+    setApplications((prev) => {
+      if (!prev || prev.length === 0) return prev;
+      const updated = prev.map((app, idx) => {
+        if (idx === 0) {
+          return {
+            ...app,
+            currentStage: stageNumber,
+            stageTitle: `Stage ${stageNumber}: ${stageInfo.name}`,
+            nextAction: stageInfo.action,
+            actionDeadline: stageInfo.deadline,
+            status: stageInfo.status,
+            updatedAt: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          };
+        }
+        return app;
+      });
+      if (user?.uid) {
+        setLocalData(`app_${user.uid}`, updated[0]);
+      }
+      return updated;
+    });
+
+    if (user?.uid && auth.currentUser && auth.currentUser.uid === user.uid) {
+      try {
+        await setDoc(doc(db, 'applications', `app-${user.uid}`), {
+          currentStage: stageNumber,
+          stageTitle: `Stage ${stageNumber}: ${stageInfo.name}`,
+          nextAction: stageInfo.action,
+          actionDeadline: stageInfo.deadline,
+          status: stageInfo.status,
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
+      } catch {
+        // Safe local fallback
+      }
+    }
+  };
+
+  const updateDocumentStatus = async (docIndex: number, newStatus: string) => {
+    setApplications((prev) => {
+      if (!prev || prev.length === 0) return prev;
+      const activeApp = prev[0];
+      const newDocs = activeApp.documents.map((doc, idx) => {
+        if (idx === docIndex) {
+          return { ...doc, status: newStatus as any };
+        }
+        return doc;
+      });
+      const updatedApp = {
+        ...activeApp,
+        documents: newDocs,
+        updatedAt: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      };
+      const updatedList = [updatedApp, ...prev.slice(1)];
+      if (user?.uid) {
+        setLocalData(`app_${user.uid}`, updatedApp);
+      }
+      return updatedList;
+    });
+
+    if (user?.uid && auth.currentUser && auth.currentUser.uid === user.uid) {
+      try {
+        const appRef = doc(db, 'applications', `app-${user.uid}`);
+        const snap = await getDoc(appRef);
+        if (snap.exists()) {
+          const appData = snap.data();
+          const docs = Array.isArray(appData.documents) ? [...appData.documents] : [];
+          if (docs[docIndex]) {
+            docs[docIndex].status = newStatus;
+            await setDoc(appRef, { documents: docs, updatedAt: new Date().toISOString() }, { merge: true });
+          }
+        }
+      } catch {
+        // Safe local fallback
+      }
+    }
+  };
+
+  const resetToFreshPortal = async () => {
+    if (!user) return;
+    const freshApp = getInitialApplication(user.uid, profile?.displayName || 'Student Applicant');
+    setApplications([freshApp]);
+    setLocalData(`app_${user.uid}`, freshApp);
+    if (auth.currentUser && auth.currentUser.uid === user.uid) {
+      try {
+        await setDoc(doc(db, 'applications', `app-${user.uid}`), freshApp, { merge: false });
+      } catch {
+        // Safe local fallback
+      }
+    }
+  };
+
   // STRICT ADMIN VERIFICATION:
   // Requires:
   // 1. Backend session verified via cryptographically signed token
@@ -658,6 +842,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         updateProfileData,
         generateNewRecommendations,
+        updateApplicationStage,
+        updateDocumentStatus,
+        resetToFreshPortal,
       }}
     >
       {children}

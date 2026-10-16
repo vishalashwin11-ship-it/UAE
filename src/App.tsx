@@ -100,14 +100,7 @@ function MainApp() {
 
       {/* Top Advisory Banner */}
       <div role="complementary" aria-label="Admissions Announcement" className="bg-slate-900 text-slate-200 text-[11px] sm:text-xs py-2 px-4 text-center font-medium border-b border-slate-800 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-          <span>
-            <strong>Fall 2026 Admissions:</strong> Priority scholarship rounds are active!
-          </span>
-        </div>
-        
-        <span className="hidden sm:inline text-slate-700">|</span>
+
 
         {/* Regional Desk Asia Helpline */}
         <a 
