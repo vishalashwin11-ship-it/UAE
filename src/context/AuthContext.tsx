@@ -159,7 +159,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY_PREFIX = 'upbeat_abroad_student_';
+const LOCAL_STORAGE_KEY_PREFIX = 'upbeat_abroad_v2_';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<any | null>(null);

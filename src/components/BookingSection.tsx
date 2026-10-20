@@ -369,7 +369,7 @@ END:VCALENDAR`;
                       onChange={(e) => setIntake(e.target.value)}
                       className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                     >
-                      <option value="Fall 2026">Fall 2026 (Priority Round)</option>
+                      <option value="Fall 2026">Fall 2026 Admissions (Regular Round)</option>
                       <option value="Spring 2027">Spring 2027</option>
                       <option value="Fall 2027">Fall 2027</option>
                       <option value="Immediate / Rolling">Immediate / Rolling 2026</option>

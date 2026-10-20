@@ -39,7 +39,7 @@ export const ContactUsSection: React.FC<ContactUsSectionProps> = ({
     },
     {
       q: 'When should I begin my study abroad application process?',
-      a: 'Ideally 9 to 12 months prior to your target intake. For Fall 2026 admissions, the optimal preparation starts between September and January to meet early priority scholarship deadlines and ensure comfortable visa appointment slots.',
+      a: 'Ideally 9 to 12 months prior to your target intake. For Fall 2026 admissions, optimal preparation begins now to finalize university shortlists, complete standardized tests, and secure regular admission slots.',
     },
     {
       q: 'Do you help students with lower GPAs or backlogs?',
