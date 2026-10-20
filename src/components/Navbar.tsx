@@ -23,6 +23,7 @@ interface NavbarProps {
   onOpenWhatsApp: () => void;
   onOpenAuth: (mode?: 'signin' | 'signup') => void;
   onOpenFreeSession?: () => void;
+  onOpenProfileAssessment?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -33,6 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenWhatsApp,
   onOpenAuth,
   onOpenFreeSession,
+  onOpenProfileAssessment,
 }) => {
   const { user, profile, isAdmin, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
@@ -48,6 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const navItems = [
+    { id: 'tools', label: 'Decision Tools' },
     { id: 'destinations', label: 'Destinations' },
     { id: 'careers', label: 'Top Careers' },
     { id: 'services', label: 'Services' },
@@ -57,6 +60,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   const handleNavClick = (id: string) => {
+    if (id === 'tools') {
+      setActiveTab('home');
+      setMobileMenuOpen(false);
+      setUserDropdownOpen(false);
+      setTimeout(() => {
+        const el = document.getElementById('decision-tools');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+      return;
+    }
     setActiveTab(id);
     setMobileMenuOpen(false);
     setUserDropdownOpen(false);
@@ -143,6 +156,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Sparkles className="w-3.5 h-3.5 text-blue-600" />
                 <span>AI Counselor</span>
+              </button>
+
+              {/* Profile Assessment CTA */}
+              <button
+                onClick={onOpenProfileAssessment || onOpenFreeSession || onOpenBooking}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-extrabold text-blue-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-2xs transition-all active:scale-[0.98]"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-blue-900" />
+                <span>Profile Assessment</span>
               </button>
 
               {/* Book Counselling CTA */}
@@ -322,6 +344,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
 
             <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2.5">
+
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (onOpenProfileAssessment) onOpenProfileAssessment();
+                  else if (onOpenFreeSession) onOpenFreeSession();
+                  else onOpenBooking();
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-extrabold text-blue-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-sm"
+              >
+                <Sparkles className="w-4 h-4 text-blue-900" />
+                Get My Profile Assessment
+              </button>
 
               <button
                 onClick={() => {

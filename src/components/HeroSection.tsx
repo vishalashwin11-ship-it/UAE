@@ -19,6 +19,7 @@ interface HeroSectionProps {
   onOpenBooking: () => void;
   onOpenAiChat: () => void;
   onOpenFreeSession?: () => void;
+  onOpenProfileAssessment?: () => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -27,6 +28,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onOpenBooking,
   onOpenAiChat,
   onOpenFreeSession,
+  onOpenProfileAssessment,
 }) => {
   const [selectedDegree, setSelectedDegree] = useState('masters');
   const [selectedField, setSelectedField] = useState('Tech & AI');
@@ -38,6 +40,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       onExploreDestinations(selectedCountry);
     } else {
       onExploreCareers(selectedField);
+    }
+  };
+
+  const scrollToTools = (toolId?: string) => {
+    const el = document.getElementById('decision-tools');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else if (onOpenProfileAssessment) {
+      onOpenProfileAssessment();
     }
   };
 
@@ -62,51 +73,86 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <span className="hidden sm:inline text-emerald-700 font-bold">$24M+ Scholarships Secured</span>
           </div>
 
-          {/* Main Title */}
+          {/* Main Title - Conversion Headline */}
           <h1 id="hero-main-heading" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] font-display">
-            Navigate Your Journey to{' '}
+            Your Study Abroad Journey{' '}
             <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
-              Top Global Universities
-            </span>{' '}
-            & High-ROI Careers
+              Starts With The Right Plan
+            </span>
           </h1>
 
           {/* Subtitle */}
           <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto font-normal leading-relaxed">
-            Inspired by world-class counseling standards. Upbeat Abroad Education merges bespoke senior mentorship, data-driven university shortlisting, and high-demand career pathways across 10+ countries.
+            Eliminate the admissions guesswork. Use our data-driven decision tools for university shortlisting based on profile and budget, country cost comparisons, scholarship eligibility, and application readiness scoring.
           </p>
 
-          {/* Hero CTAs */}
+          {/* Conversion Hero CTAs */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            {/* Primary High-Converting CTA */}
             <button
-              onClick={onOpenFreeSession || onOpenBooking}
-              className="px-6 py-3.5 text-sm sm:text-base font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md hover:shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
+              onClick={onOpenProfileAssessment || onOpenFreeSession || onOpenBooking}
+              className="px-7 py-4 text-sm sm:text-base font-extrabold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 rounded-xl shadow-lg hover:shadow-xl shadow-blue-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2.5 group"
             >
-              <span>Book Free 1-on-1 Counselling</span>
-              <ArrowRight className="w-4 h-4" />
+              <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+              <span>Get My Profile Assessment</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
+
+            {/* Secondary CTA: Jump to Decision Tools */}
+            <button
+              onClick={() => scrollToTools()}
+              className="px-6 py-4 text-sm sm:text-base font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-xs hover:shadow-sm transition-all flex items-center gap-2 group"
+            >
+              <span>Explore Planning Tools</span>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+            </button>
+
             <button
               onClick={onOpenAiChat}
-              className="px-6 py-3.5 text-sm sm:text-base font-semibold text-slate-800 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs hover:shadow-sm transition-all flex items-center gap-2 group"
+              className="px-5 py-4 text-sm sm:text-base font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all flex items-center gap-2"
             >
-              <Sparkles className="w-4 h-4 text-blue-600 group-hover:rotate-12 transition-transform" />
-              <span>Ask Upbeat AI Advisor</span>
+              <Sparkles className="w-4 h-4 text-blue-600" />
+              <span>Ask AI Advisor</span>
             </button>
           </div>
 
+          {/* Quick Decision Tool Launcher Pills */}
+          <div className="mt-8 pt-6 border-t border-slate-200/80 max-w-3xl mx-auto">
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 block mb-3">
+              Explore Our Free Admissions Decision Tools:
+            </span>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {[
+                { label: '🎯 University Shortlisting', desc: 'Profile & Budget' },
+                { label: '📊 Country Cost Sheet', desc: 'Tuition & PSW' },
+                { label: '🎓 Scholarship Eligibility', desc: 'Grants & Fellowships' },
+                { label: '📈 Readiness Scorecard', desc: '0-100 Rating' },
+                { label: '📅 1-on-1 Counseling', desc: 'Book Session' },
+              ].map((pill, pIdx) => (
+                <button
+                  key={pIdx}
+                  onClick={() => scrollToTools()}
+                  className="px-3 py-1.5 rounded-full bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 text-xs font-semibold text-slate-700 hover:text-blue-700 transition-all shadow-2xs flex items-center gap-1.5"
+                >
+                  <span>{pill.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Feature highlights */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm font-medium text-slate-600">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm font-medium text-slate-600">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Zero Service Fee for Select Partner Hubs</span>
+              <span>Free 2-Minute Assessment</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Ivy League & Russell Group Alumni Mentors</span>
+              <span>Zero Service Fee Option</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>End-to-End Visa & Financial Support</span>
+              <span>Ivy League & Russell Group Mentors</span>
             </div>
           </div>
         </div>

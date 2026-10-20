@@ -17,6 +17,8 @@ import { AuthModal } from './components/AuthModal';
 import { StudentPortal } from './components/StudentPortal';
 import { AdminPortal } from './components/AdminPortal';
 import { FreeSessionModal } from './components/FreeSessionModal';
+import { DecisionToolsSection } from './components/DecisionToolsSection';
+import { ProfileAssessmentModal } from './components/ProfileAssessmentModal';
 import { SECRET_ADMIN_URL } from './services/registrationService';
 import { Sparkles, Calendar, MessageSquare, ArrowRight, GraduationCap, FileCheck2, ShieldCheck, Phone } from 'lucide-react';
 
@@ -27,6 +29,7 @@ function MainApp() {
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isFreeSessionOpen, setIsFreeSessionOpen] = useState<boolean>(false);
+  const [isProfileAssessmentOpen, setIsProfileAssessmentOpen] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
 
   // Pre-fill parameters for booking
@@ -133,6 +136,7 @@ function MainApp() {
         onOpenWhatsApp={() => setIsWhatsAppOpen(true)}
         onOpenAuth={handleOpenAuth}
         onOpenFreeSession={() => setIsFreeSessionOpen(true)}
+        onOpenProfileAssessment={() => setIsProfileAssessmentOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -167,6 +171,14 @@ function MainApp() {
               onOpenBooking={() => handleOpenBooking()}
               onOpenAiChat={() => setIsAiChatOpen(true)}
               onOpenFreeSession={() => setIsFreeSessionOpen(true)}
+              onOpenProfileAssessment={() => setIsProfileAssessmentOpen(true)}
+            />
+
+            {/* 5 Conversion Decision Tools: Shortlisting, Cost Sheet, Scholarship, Readiness, Counseling */}
+            <DecisionToolsSection
+              onOpenBooking={() => handleOpenBooking()}
+              onOpenWhatsApp={() => setIsWhatsAppOpen(true)}
+              onOpenProfileAssessment={() => setIsProfileAssessmentOpen(true)}
             />
 
             {/* Quick Student Portal Callout Strip */}
@@ -391,6 +403,15 @@ function MainApp() {
         isOpen={isFreeSessionOpen}
         onClose={() => setIsFreeSessionOpen(false)}
         defaultDestination={bookingDestination}
+      />
+
+      {/* Primary High-Converting Profile Assessment Modal */}
+      <ProfileAssessmentModal
+        isOpen={isProfileAssessmentOpen}
+        onClose={() => setIsProfileAssessmentOpen(false)}
+        onOpenBooking={() => handleOpenBooking()}
+        onOpenWhatsApp={() => setIsWhatsAppOpen(true)}
+        preselectedCountry={bookingDestination}
       />
     </div>
   );
